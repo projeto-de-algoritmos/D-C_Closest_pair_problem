@@ -58,30 +58,58 @@ int main(){
             printf("INFINITY\n");
 
     }//end while
+    free(pontos);
 
     return 0;
 }//end main
 
 float encontra_pontos_mais_proximos(Ponto * pontos, int esq, int dir){
+    // precisa de condicao de parada ?? se esq >= dir return ?? dir - esq == 1
     int meio = (esq + dir)/2; //'linha' de separacao
+    //if(meio == esq)
+    //    meio++;
+    if(dir-esq <= 1){
+        printf("entrei\nesq %d dir %d\n", esq, dir);
+        merge(pontos, esq, meio, dir, 1);
+        return euclidiana(&pontos[esq], &pontos[dir]);
+    }//end if so ha 2 elementos
     float menorDistEsquerda = encontra_pontos_mais_proximos(pontos, esq, meio);
     float menorDistDireita = encontra_pontos_mais_proximos(pontos, meio+1, dir);
     float menorDistanciaOficial = menorDistEsquerda < menorDistDireita ? menorDistEsquerda : menorDistDireita;
     Ponto _mediana = mediana(pontos, esq, dir); //pegar a mediana de x aqui
     merge(pontos, esq, meio, dir, 1); //merge em y
+    Ponto * pontosAUX = (Ponto *) calloc(dir-esq+1, sizeof(Ponto)); // S'
+    int posicaoAUX = 0; //qtd elementos em S'
     //deletar pontos cuja distancia para o meio seja maior que a menor distancia ja calculada
-    //for(int i=esq; i<=dir; i++){
-    //    mediana.y = pontos[i].y;
-    //    if(euclidiana())
-    //}//end for deleta
+    for(int i=esq; i<=dir; i++){
+        _mediana.y = pontos[i].y;
+        if(euclidiana(&pontos[i], &_mediana) <= menorDistanciaOficial){
+            pontosAUX[posicaoAUX] = pontos[i];
+            posicaoAUX++;
+        }//end if excluir ponto
+    }//end for deleta
+    // scan S' em y e comparar distancia com ate 7 vizinhos, atualizar menorDistanciaOficial se for o caso
+    float _euclid; //aux para comparar a euclidiana entre os pontos
+    for(int i=esq; i<=posicaoAUX; i++){
+        for(int j=i+1, conta=0; j<=posicaoAUX, conta<=6; j++, conta++){
+            _euclid = euclidiana(&pontosAUX[i], &pontosAUX[j]);
+            if(_euclid < menorDistanciaOficial)
+                menorDistanciaOficial = _euclid;
+        }//end for compara ate 7 vizinhos
+    }//end for scan e compara pontos
+    free(pontosAUX);
     return menorDistanciaOficial;
 }//end encontra ponto mais proximo
 
 Ponto mediana(Ponto * pontos, int esq, int dir){
+    // essa funcao encontra a mediana em x, considerando que o vetor esta ordenado
     Ponto mediana;
-    int calculo;
-    // TO DO calculo
-    mediana.x = calculo;
+    int meio = (esq + dir);
+    if(meio % 2 != 0) //se for impar, round pra cima
+        meio = (int) ceil(meio/2.0);
+    else 
+        meio = meio/2;
+    mediana.x = pontos[meio].x;
     mediana.y = 0; //default
     return mediana;
 }//end mediana
@@ -89,6 +117,8 @@ Ponto mediana(Ponto * pontos, int esq, int dir){
 float euclidiana(Ponto *a, Ponto *b){
     int x = b->x - a->x;
     int y = b->y - a->y;
+    if(y==0)
+        return x;
     float hipotenusa = sqrt( ( powf((float)x, 2.0) + pow((float)y, 2.0) ) );
     return hipotenusa;
 }//end euclidiana
