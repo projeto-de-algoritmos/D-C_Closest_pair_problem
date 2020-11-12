@@ -49,7 +49,7 @@ int main(){
 
         //achar menor distancia
         mergeSort(pontos, 0, N-1, 0); // ordena todos em x
-        menorDistancia = encontra_pontos_mais_proximos(pontos, 0, N-1);
+        menorDistancia = encontra_pontos_mais_proximos(pontos, 0, N -1);
 
         //print resultado
         if(menorDistancia < 10000)
@@ -65,20 +65,38 @@ int main(){
 
 float encontra_pontos_mais_proximos(Ponto * pontos, int esq, int dir){
     // precisa de condicao de parada ?? se esq >= dir return ?? dir - esq == 1
-    int meio = (esq + dir)/2; //'linha' de separacao
+    
+    int meio = ceil((esq + dir)/2.0); //'linha' de separacao
     //if(meio == esq)
     //    meio++;
-    if(dir-esq <= 1){
-        printf("entrei\nesq %d dir %d\n", esq, dir);
+    
+    if (dir-esq == 0)
+        return 0;
+    else if(dir-esq == 1){
+        //printf("entrei\nesq %d dir %d\n", esq, dir);
         merge(pontos, esq, meio, dir, 1);
         return euclidiana(&pontos[esq], &pontos[dir]);
     }//end if so ha 2 elementos
+    
     float menorDistEsquerda = encontra_pontos_mais_proximos(pontos, esq, meio);
-    float menorDistDireita = encontra_pontos_mais_proximos(pontos, meio+1, dir);
-    float menorDistanciaOficial = menorDistEsquerda < menorDistDireita ? menorDistEsquerda : menorDistDireita;
+    float menorDistDireita = encontra_pontos_mais_proximos(pontos, meio + 1 , dir);
+
+    float menorDistanciaOficial;
+
+    if (menorDistEsquerda == 0 && menorDistDireita == 0) {
+        printf("Caos e destruição\n");
+        return 0;
+    }
+    else if (menorDistEsquerda == 0) menorDistanciaOficial = menorDistDireita;
+    else if (menorDistDireita == 0) menorDistanciaOficial = menorDistEsquerda;
+    else menorDistanciaOficial = menorDistEsquerda < menorDistDireita ? menorDistEsquerda : menorDistDireita;
+
+    merge(pontos, esq, meio, dir, 0);
     Ponto _mediana = mediana(pontos, esq, dir); //pegar a mediana de x aqui
     merge(pontos, esq, meio, dir, 1); //merge em y
+
     Ponto * pontosAUX = (Ponto *) calloc(dir-esq+1, sizeof(Ponto)); // S'
+
     int posicaoAUX = 0; //qtd elementos em S'
     //deletar pontos cuja distancia para o meio seja maior que a menor distancia ja calculada
     for(int i=esq; i<=dir; i++){
@@ -91,7 +109,7 @@ float encontra_pontos_mais_proximos(Ponto * pontos, int esq, int dir){
     // scan S' em y e comparar distancia com ate 7 vizinhos, atualizar menorDistanciaOficial se for o caso
     float _euclid; //aux para comparar a euclidiana entre os pontos
     for(int i=esq; i<=posicaoAUX; i++){
-        for(int j=i+1, conta=0; j<=posicaoAUX, conta<=6; j++, conta++){
+        for(int j=i+1, conta=0; j<=posicaoAUX && conta<=6; j++, conta++){
             _euclid = euclidiana(&pontosAUX[i], &pontosAUX[j]);
             if(_euclid < menorDistanciaOficial)
                 menorDistanciaOficial = _euclid;
