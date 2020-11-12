@@ -71,45 +71,42 @@ float encontra_pontos_mais_proximos(Ponto * pontos, int esq, int dir){
     //    meio++;
     
     if (dir-esq == 0)
-        return 0;
+        return 10000;
     else if(dir-esq == 1){
         //printf("entrei\nesq %d dir %d\n", esq, dir);
         merge(pontos, esq, meio, dir, 1);
         return euclidiana(&pontos[esq], &pontos[dir]);
-    }//end if so ha 2 elementos
+    }
     
     float menorDistEsquerda = encontra_pontos_mais_proximos(pontos, esq, meio);
     float menorDistDireita = encontra_pontos_mais_proximos(pontos, meio + 1 , dir);
 
-    float menorDistanciaOficial;
+    float menorDistanciaOficial = menorDistEsquerda < menorDistDireita ? menorDistEsquerda : menorDistDireita;
 
-    if (menorDistEsquerda == 0 && menorDistDireita == 0) {
-        printf("Caos e destruição\n");
-        return 0;
-    }
-    else if (menorDistEsquerda == 0) menorDistanciaOficial = menorDistDireita;
-    else if (menorDistDireita == 0) menorDistanciaOficial = menorDistEsquerda;
-    else menorDistanciaOficial = menorDistEsquerda < menorDistDireita ? menorDistEsquerda : menorDistDireita;
-
-    merge(pontos, esq, meio, dir, 0);
     Ponto _mediana = mediana(pontos, esq, dir); //pegar a mediana de x aqui
     merge(pontos, esq, meio, dir, 1); //merge em y
 
     Ponto * pontosAUX = (Ponto *) calloc(dir-esq+1, sizeof(Ponto)); // S'
 
     int posicaoAUX = 0; //qtd elementos em S'
+
     //deletar pontos cuja distancia para o meio seja maior que a menor distancia ja calculada
     for(int i=esq; i<=dir; i++){
         _mediana.y = pontos[i].y;
-        if(euclidiana(&pontos[i], &_mediana) <= menorDistanciaOficial){
+        
+        float tempEuclidiana = euclidiana(&pontos[i], &_mediana);
+        
+        if(tempEuclidiana < menorDistanciaOficial){
             pontosAUX[posicaoAUX] = pontos[i];
             posicaoAUX++;
         }//end if excluir ponto
     }//end for deleta
+
     // scan S' em y e comparar distancia com ate 7 vizinhos, atualizar menorDistanciaOficial se for o caso
     float _euclid; //aux para comparar a euclidiana entre os pontos
+    
     for(int i=esq; i<=posicaoAUX; i++){
-        for(int j=i+1, conta=0; j<=posicaoAUX && conta<=6; j++, conta++){
+        for(int j=i+1, conta=0; j < posicaoAUX && conta < 7; j++, conta++){
             _euclid = euclidiana(&pontosAUX[i], &pontosAUX[j]);
             if(_euclid < menorDistanciaOficial)
                 menorDistanciaOficial = _euclid;
@@ -122,7 +119,9 @@ float encontra_pontos_mais_proximos(Ponto * pontos, int esq, int dir){
 Ponto mediana(Ponto * pontos, int esq, int dir){
     // essa funcao encontra a mediana em x, considerando que o vetor esta ordenado
     Ponto mediana;
+    
     int meio = (esq + dir);
+    
     if(meio % 2 != 0) //se for impar, round pra cima
         meio = (int) ceil(meio/2.0);
     else 
@@ -135,9 +134,7 @@ Ponto mediana(Ponto * pontos, int esq, int dir){
 float euclidiana(Ponto *a, Ponto *b){
     int x = b->x - a->x;
     int y = b->y - a->y;
-    if(y==0)
-        return x;
-    float hipotenusa = sqrt( ( powf((float)x, 2.0) + pow((float)y, 2.0) ) );
+    float hipotenusa = sqrt( ( powf((float)x, 2.0) + powf((float)y, 2.0) ) );
     return hipotenusa;
 }//end euclidiana
 
@@ -149,35 +146,35 @@ void merge(Ponto *vet, int esq, int meio, int dir, int x_or_y){
     case 0:
         while (i <= meio && j <= dir){
             if (vet[i].x <= vet[j].x) //assim fica estavel
-                aux[k++].x = vet[i++].x;
+                aux[k++] = vet[i++];
             else
-                aux[k++].x = vet[j++].x;
+                aux[k++] = vet[j++];
         } //end while
         while (i <= meio)
-            aux[k++].x = vet[i++].x;
+            aux[k++] = vet[i++];
         while (j <= dir)
-            aux[k++].x = vet[j++].x;
+            aux[k++] = vet[j++];
 
         k = 0;
         for (i = esq; i <= dir; i++)
-            vet[i].x = aux[k++].x;
+            vet[i] = aux[k++];
         break;
 
     case 1:
         while (i <= meio && j <= dir){
             if (vet[i].y <= vet[j].y) //assim fica estavel
-                aux[k++].y = vet[i++].y;
+                aux[k++] = vet[i++];
             else
-                aux[k++].y = vet[j++].y;
+                aux[k++] = vet[j++];
         } //end while
         while (i <= meio)
-            aux[k++].y = vet[i++].y;
+            aux[k++] = vet[i++];
         while (j <= dir)
-            aux[k++].y = vet[j++].y;
+            aux[k++] = vet[j++];
 
         k = 0;
         for (i = esq; i <= dir; i++)
-            vet[i].y = aux[k++].y;
+            vet[i] = aux[k++];
         break;
 
     default:
